@@ -2,22 +2,19 @@ name: Progress Record
 
 permissions:
   contents: write
+  pages: write
 
 on:
   schedule:
-    - cron: '13 3 * * *'
-    - cron: '47 6 * * *'
-    - cron: '22 9 * * *'
-    - cron: '5 13 * * *'
-    - cron: '39 16 * * *'
+    - cron: '0 3 * * *'
   workflow_dispatch:
-  push:
-    branches:
-      - main
+
+concurrency:
+  group: progress-record-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   commit:
-    if: github.event_name != 'push'
     runs-on: ubuntu-latest
 
     steps:
@@ -53,29 +50,28 @@ jobs:
           git config --global user.name "chetan verma"
           git config --global user.email "chetancodesforyou@gmail.com"
           git add .
-          git commit -m "$MESSAGE - $(date)" || echo "No changes"
+          git diff --cached --quiet || git commit -m "$MESSAGE - $(date)"
           git push
 
   deploy:
     needs: commit
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      
+
       - name: Build
         run: |
           echo "Building application..."
           # Add your build commands here
           # Example: npm install && npm run build
-      
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
-        continue-on-error: true
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-      
+
       - name: Deployment Complete
         run: echo "Deployment completed successfully!"
