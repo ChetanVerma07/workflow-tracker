@@ -1,5 +1,8 @@
 name: Progress Record
 
+permissions:
+  contents: write
+
 on:
   schedule:
     - cron: '13 3 * * *'
@@ -14,11 +17,15 @@ on:
 
 jobs:
   commit:
+    if: github.event_name != 'push'
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+          fetch-depth: 0
 
       - name: Generate random progress
         run: |
