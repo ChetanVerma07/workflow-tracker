@@ -8,6 +8,9 @@ on:
     - cron: '5 13 * * *'
     - cron: '39 16 * * *'
   workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   commit:
@@ -45,3 +48,27 @@ jobs:
           git add .
           git commit -m "$MESSAGE - $(date)" || echo "No changes"
           git push
+
+  deploy:
+    needs: commit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      
+      - name: Build
+        run: |
+          echo "Building application..."
+          # Add your build commands here
+          # Example: npm install && npm run build
+      
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        continue-on-error: true
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+      
+      - name: Deployment Complete
+        run: echo "Deployment completed successfully!"
